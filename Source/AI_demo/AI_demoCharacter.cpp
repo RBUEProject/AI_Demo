@@ -12,6 +12,8 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "GameFramework//PlayerController.h"
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
+#include "Perception/AISense_Sight.h"
 //////////////////////////////////////////////////////////////////////////
 // AAI_demoCharacter
 
@@ -48,6 +50,7 @@ AAI_demoCharacter::AAI_demoCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
+	setup_stimulus();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -85,6 +88,13 @@ void AAI_demoCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerI
 void AAI_demoCharacter::OnExitGame()
 {
 	GetWorld()->GetFirstPlayerController()->ConsoleCommand("quit");
+}
+
+void AAI_demoCharacter::setup_stimulus()
+{
+	stimulus = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("stimulus"));
+	stimulus->RegisterForSense(TSubclassOf<UAISense_Sight>());
+	stimulus->RegisterWithPerceptionSystem();
 }
 
 void AAI_demoCharacter::BeginPlay()

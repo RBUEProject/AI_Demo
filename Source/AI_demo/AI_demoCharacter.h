@@ -71,5 +71,9 @@ protected:
 
 private:
 	void OnExitGame();
+
+	class UAIPerceptionStimuliSourceComponent*stimulus;
+
+	void setup_stimulus();
 };
 
