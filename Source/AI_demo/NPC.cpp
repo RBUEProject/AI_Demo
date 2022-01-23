@@ -43,3 +43,8 @@ void ANPC::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 }
 
+APatrolPath* ANPC::get_patrol_path()
+{
+	return patrol_path;
+}
+
