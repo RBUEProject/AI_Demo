@@ -3,13 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
+
 #include "Animation/AnimMontage.h"
 #include "Sound/SoundBase.h"
+#include "Cpp_AI_CharacterBase.h"
 #include "AI_demoCharacter.generated.h"
 
 UCLASS(config=Game)
-class AAI_demoCharacter : public ACharacter
+class AAI_demoCharacter : public ACpp_AI_CharacterBase
 {
 	GENERATED_BODY()
 
@@ -37,6 +38,11 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+	float get_health()const;
+	float get_max_health()const;
+	void set_health(float const new_health);
+
 protected:
 
 	/** Resets HMD orientation in VR. */
@@ -66,17 +72,25 @@ protected:
 	/** Handler for when a touch input stops. */
 	void TouchStopped(ETouchIndex::Type FingerIndex, FVector Location);
 
+
+	void Tick(float const DeltaTime)override;
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	// End of APawn interface
 
 private:
+	class UWidgetComponent*widget_component;
+	float health;
+	float const max_health = 100.0f;
+
+
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category = "Sound",meta = (AllowPrivateAccess = "true"))
 	USoundBase*distraction_sound;
 
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category = "Animation",meta = (AllowPrivateAccess = "true"))
 	UAnimMontage*montage;
+
+
 
 	void OnExitGame();
 
@@ -86,5 +100,12 @@ private:
 
 	void on_attack();
 	void on_distract();
+
+	UFUNCTION()
+	void on_attack_overlap_begin(UPrimitiveComponent*const overlapped_component, AActor*const other_actor,
+		UPrimitiveComponent*other_component, int const other_body_index, bool const from_sweep, FHitResult const& sweep_result);
+	UFUNCTION()
+	void on_attack_overlap_end(UPrimitiveComponent*const overlapped_component, AActor*const other_actor,
+		UPrimitiveComponent*other_component, int const other_body_index);
 };
 

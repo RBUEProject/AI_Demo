@@ -18,10 +18,15 @@
 #include "ai_tags.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/Engine/Classes/Engine/Engine.h"
+#include "Components/WidgetComponent.h"
+#include "UObject/ConstructorHelpers.h"
+#include "HealthBar.h"
+#include "NPC.h"
+#include "Runtime/Engine/Classes/Components/BoxComponent.h"
 //////////////////////////////////////////////////////////////////////////
 // AAI_demoCharacter
 
-AAI_demoCharacter::AAI_demoCharacter()
+AAI_demoCharacter::AAI_demoCharacter():widget_component(CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthValue")))
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -55,6 +60,18 @@ AAI_demoCharacter::AAI_demoCharacter()
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 	setup_stimulus();
+	health = max_health;
+	if (widget_component)
+	{
+		widget_component->SetupAttachment(RootComponent);
+		widget_component->SetWidgetSpace(EWidgetSpace::Screen);//face the player
+		widget_component->SetRelativeLocation(FVector(0.0f, 0.0f, 85.0f));
+		static ConstructorHelpers::FClassFinder<UUserWidget> widget_class(TEXT("/Game/UI/HeathBar_WBP"));
+		if (widget_class.Succeeded())
+		{
+			widget_component->SetWidgetClass(widget_class.Class);
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -123,6 +140,20 @@ void AAI_demoCharacter::on_distract()
 	}
 }
 
+void AAI_demoCharacter::on_attack_overlap_begin(UPrimitiveComponent*const overlapped_component, AActor*const other_actor, UPrimitiveComponent*other_component, int const other_body_index, bool const from_sweep, FHitResult const& sweep_result)
+{
+	if (ANPC* const npc = Cast<ANPC>(other_actor))
+	{
+		float const new_health = npc->get_health() - npc->get_max_health()*0.1f;
+		npc->set_health(new_health);
+	}
+}
+
+void AAI_demoCharacter::on_attack_overlap_end(UPrimitiveComponent*const overlapped_component, AActor*const other_actor, UPrimitiveComponent*other_component, int const other_body_index)
+{
+
+}
+
 void AAI_demoCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -136,6 +167,13 @@ void AAI_demoCharacter::BeginPlay()
 		material_instance->SetVectorParameterValue("BodyColor",FLinearColor(0.0f,1.0f,0.0f,1.0f));
 		GetMesh()->SetMaterial(0,material_instance);
 	}
+	
+	if (right_first_collision_box)
+	{
+		right_first_collision_box->OnComponentBeginOverlap.AddDynamic(this,&AAI_demoCharacter::on_attack_overlap_begin);
+		right_first_collision_box->OnComponentEndOverlap.AddDynamic(this,&AAI_demoCharacter::on_attack_overlap_end);
+	}
+	
 }
 
 void AAI_demoCharacter::OnResetVR()
@@ -157,6 +195,42 @@ void AAI_demoCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Loca
 void AAI_demoCharacter::TouchStopped(ETouchIndex::Type FingerIndex, FVector Location)
 {
 		StopJumping();
+}
+
+float AAI_demoCharacter::get_health() const
+{
+	return health;
+}
+
+float AAI_demoCharacter::get_max_health() const
+{
+	return max_health;
+}
+
+void AAI_demoCharacter::set_health(float const new_health)
+{
+	health = new_health;
+	if (health <= 0)
+	{
+		UE_LOG(LogTemp, Error, TEXT("You lose sucker"));
+		auto const controller = UGameplayStatics::GetPlayerController(this, 0);
+		controller->SetCinematicMode(true, false, false, true, true);
+		GetMesh()->SetSimulatePhysics(true);
+		GetMovementComponent()->MovementState.bCanJump = false;
+		GetWorld()->GetFirstPlayerController()->ConsoleCommand("quit");
+	}
+
+}
+
+void AAI_demoCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	auto const uw = Cast<UHealthBar>(widget_component->GetUserWidgetObject());
+	if (uw)
+	{
+		uw->set_bar_value_percent(health / max_health);
+		//UE_LOG(LogTemp, Error, TEXT("update health bar"));
+	}
 }
 
 void AAI_demoCharacter::TurnAtRate(float Rate)
