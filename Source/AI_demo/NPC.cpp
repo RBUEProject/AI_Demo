@@ -48,3 +48,17 @@ APatrolPath* ANPC::get_patrol_path()
 	return patrol_path;
 }
 
+
+void ANPC::melee_attack()
+{
+	if (montage)
+	{
+		PlayAnimMontage(montage);
+	}
+}
+
+UAnimMontage* ANPC::get_Montage() const
+{
+	return montage;
+}
+

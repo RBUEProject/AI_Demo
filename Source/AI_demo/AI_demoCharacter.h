@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Animation/AnimMontage.h"
+#include "Sound/SoundBase.h"
 #include "AI_demoCharacter.generated.h"
 
 UCLASS(config=Game)
@@ -70,10 +72,19 @@ protected:
 	// End of APawn interface
 
 private:
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category = "Sound",meta = (AllowPrivateAccess = "true"))
+	USoundBase*distraction_sound;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category = "Animation",meta = (AllowPrivateAccess = "true"))
+	UAnimMontage*montage;
+
 	void OnExitGame();
 
 	class UAIPerceptionStimuliSourceComponent*stimulus;
 
 	void setup_stimulus();
+
+	void on_attack();
+	void on_distract();
 };
 

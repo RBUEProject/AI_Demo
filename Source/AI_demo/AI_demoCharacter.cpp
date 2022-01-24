@@ -14,6 +14,10 @@
 #include "GameFramework//PlayerController.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Perception/AISense_Sight.h"
+#include "Perception/AISense_Hearing.h"
+#include "ai_tags.h"
+#include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
+#include "Runtime/Engine/Classes/Engine/Engine.h"
 //////////////////////////////////////////////////////////////////////////
 // AAI_demoCharacter
 
@@ -82,6 +86,10 @@ void AAI_demoCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerI
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AAI_demoCharacter::OnResetVR);
 
 	PlayerInputComponent->BindAction("ExitGame",IE_Pressed,this,&AAI_demoCharacter::OnExitGame);
+
+	PlayerInputComponent->BindAction("Attack",IE_Pressed,this,&AAI_demoCharacter::on_attack);
+
+	PlayerInputComponent->BindAction("Distract",IE_Pressed,this,&AAI_demoCharacter::on_distract);
 }
 
 
@@ -95,6 +103,24 @@ void AAI_demoCharacter::setup_stimulus()
 	stimulus = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("stimulus"));
 	stimulus->RegisterForSense(TSubclassOf<UAISense_Sight>());
 	stimulus->RegisterWithPerceptionSystem();
+}
+
+void AAI_demoCharacter::on_attack()
+{
+	if (montage)
+	{
+		PlayAnimMontage(montage);
+	}
+}
+
+void AAI_demoCharacter::on_distract()
+{
+	if (distraction_sound)
+	{
+		FVector const loc = GetActorLocation();
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(),distraction_sound,loc);
+		UAISense_Hearing::ReportNoiseEvent(GetWorld(),loc,1.0f,this,0.0f,tags::noise_tag);
+	}
 }
 
 void AAI_demoCharacter::BeginPlay()

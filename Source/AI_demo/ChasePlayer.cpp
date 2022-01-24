@@ -14,7 +14,7 @@ UChasePlayer::UChasePlayer(FObjectInitializer const& object_initializer)
 EBTNodeResult::Type UChasePlayer::ExecuteTask(UBehaviorTreeComponent& owner_comp, uint8* node_memory)
 {
 	ANPC_AIController* const cont = Cast<ANPC_AIController>(owner_comp.GetAIOwner());
-	FVector const player_location = cont->get_blackboard()->GetValueAsVector(bb_keys::target_location);
+	FVector const player_location = cont->get_blackboard()->GetValueAsVector(GetSelectedBlackboardKey());
 
 	UAIBlueprintHelperLibrary::SimpleMoveToLocation(cont,player_location);
 	FinishLatentTask(owner_comp,EBTNodeResult::Succeeded);

@@ -6,7 +6,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "NPC.h"
 #include "blackboard_keys.h"
-
+#include <cmath>
 UIncrementPathIndex::UIncrementPathIndex(FObjectInitializer const& object_initializer)
 {
 	NodeName = TEXT("Increase patrol Path Point Index");
@@ -21,17 +21,20 @@ EBTNodeResult::Type UIncrementPathIndex::ExecuteTask(UBehaviorTreeComponent& own
 	int const min_index = 0;
 	int const max_index = no_of_points-1;
 
-	int index = controller->get_blackboard()->GetValueAsInt(bb_keys::patrol_path_index);
-	if (index >= max_index && direction == EDirectionType::Forward)
+	int index = controller->get_blackboard()->GetValueAsInt(GetSelectedBlackboardKey());
+	if (bidirectional)
 	{
-		direction = EDirectionType::Reverse;
+		if (index >= max_index && direction == EDirectionType::Forward)
+		{
+			direction = EDirectionType::Reverse;
+		}
+		else if (index == min_index && direction == EDirectionType::Reverse)
+		{
+			direction = EDirectionType::Forward;
+		}
 	}
-	else if (index == min_index && direction == EDirectionType::Reverse)
-	{
-		direction = EDirectionType::Forward;
-	}
-	controller->get_blackboard()->SetValueAsInt(bb_keys::patrol_path_index,
-		(direction == EDirectionType::Forward ? ++index : --index)%no_of_points);
+	controller->get_blackboard()->SetValueAsInt(GetSelectedBlackboardKey(),
+		(direction == EDirectionType::Forward ? std::abs(++index) : std::abs(--index))%no_of_points);
 
 	FinishLatentTask(owner_comp,EBTNodeResult::Succeeded);
 	return EBTNodeResult::Succeeded;

@@ -17,4 +17,7 @@ class AI_DEMO_API UFindPatrolPathPoint : public UBTTask_BlackboardBase
 public:
 	UFindPatrolPathPoint(FObjectInitializer const& object_initializer);
 	EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& owner_comp,uint8*node_memory)override;
+private:
+	UPROPERTY(EditAnywhere,Category = Blackboard,meta = (AllowPrivateAccess = "true"))
+	struct FBlackboardKeySelector PatrolPathVectorKey;
 };
