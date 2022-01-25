@@ -4,9 +4,6 @@
 #include "FindPlayerLocation.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Runtime/NavigationSystem/Public/NavigationSystem.h"
-#include "NPC_AIController.h"
-#include "BehaviorTree/Blackboard/BlackboardKeyType.h"
-#include "BehaviorTree/Blackboard/BlackboardKeyType_Vector.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
 #include "blackboard_keys.h"
@@ -17,24 +14,28 @@ UFindPlayerLocation::UFindPlayerLocation(FObjectInitializer const& object_initil
 
 EBTNodeResult::Type UFindPlayerLocation::ExecuteTask(UBehaviorTreeComponent& owner_comp, uint8* node_memory)
 {
-	ACharacter*const player = UGameplayStatics::GetPlayerCharacter(GetWorld(),0);
-	auto const cont = Cast<ANPC_AIController>(owner_comp.GetAIOwner());
-
-	FVector const player_location = player->GetActorLocation();
-
-	if (search_random)
+	if (ACharacter*const player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
 	{
-		FNavLocation loc;
-		UNavigationSystemV1*const nav_sys = UNavigationSystemV1::GetCurrent(GetWorld());
-		if (nav_sys->GetRandomPointInNavigableRadius(player_location, search_radius, loc, nullptr))
+		FVector const player_location = player->GetActorLocation();
+	
+		if (search_random)
 		{
-			cont->get_blackboard()->SetValueAsVector(GetSelectedBlackboardKey(),loc.Location);
+			FNavLocation loc;
+
+			if (UNavigationSystemV1*const nav_sys = UNavigationSystemV1::GetCurrent(GetWorld()))
+			{
+				if (nav_sys->GetRandomPointInNavigableRadius(player_location, search_radius, loc, nullptr))
+				{
+					owner_comp.GetBlackboardComponent()->SetValueAsVector(GetSelectedBlackboardKey(), loc.Location);
+				}
+			}
 		}
+		else
+		{
+			owner_comp.GetBlackboardComponent()->SetValueAsVector(GetSelectedBlackboardKey(), player_location);
+		}
+		FinishLatentTask(owner_comp, EBTNodeResult::Succeeded);
+		return EBTNodeResult::Succeeded;
 	}
-	else
-	{
-		cont->get_blackboard()->SetValueAsVector(GetSelectedBlackboardKey(), player_location);
-	}
-	FinishLatentTask(owner_comp, EBTNodeResult::Succeeded);
-	return EBTNodeResult::Succeeded;
+	return EBTNodeResult::Failed;
 }

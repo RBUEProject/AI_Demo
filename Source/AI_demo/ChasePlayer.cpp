@@ -13,10 +13,13 @@ UChasePlayer::UChasePlayer(FObjectInitializer const& object_initializer)
 
 EBTNodeResult::Type UChasePlayer::ExecuteTask(UBehaviorTreeComponent& owner_comp, uint8* node_memory)
 {
-	ANPC_AIController* const cont = Cast<ANPC_AIController>(owner_comp.GetAIOwner());
-	FVector const player_location = cont->get_blackboard()->GetValueAsVector(GetSelectedBlackboardKey());
+	if (ANPC_AIController* const cont = Cast<ANPC_AIController>(owner_comp.GetAIOwner()))
+	{
+		FVector const player_location = owner_comp.GetBlackboardComponent()->GetValueAsVector(GetSelectedBlackboardKey());
 
-	UAIBlueprintHelperLibrary::SimpleMoveToLocation(cont,player_location);
-	FinishLatentTask(owner_comp,EBTNodeResult::Succeeded);
-	return EBTNodeResult::Succeeded;
+		UAIBlueprintHelperLibrary::SimpleMoveToLocation(cont, player_location);
+		FinishLatentTask(owner_comp, EBTNodeResult::Succeeded);
+		return EBTNodeResult::Succeeded;
+	}
+	return EBTNodeResult::Failed;
 }

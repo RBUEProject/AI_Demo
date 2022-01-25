@@ -14,9 +14,13 @@ UChangeSpeed::UChangeSpeed()
 void UChangeSpeed::OnBecomeRelevant(UBehaviorTreeComponent&owner_comp, uint8*node_memory)
 {
 	Super::OnBecomeRelevant(owner_comp,node_memory);
-	auto const cont = owner_comp.GetAIOwner();
-	ANPC* const npc = Cast<ANPC>(cont->GetPawn());
-	npc->GetCharacterMovement()->MaxWalkSpeed = speed;
+	if (auto const cont = owner_comp.GetAIOwner())
+	{
+		if (ANPC* const npc = Cast<ANPC>(cont->GetPawn()))
+		{
+			npc->GetCharacterMovement()->MaxWalkSpeed = speed;
+		}
+	}
 }
 
 FString UChangeSpeed::GetStaticServiceDescription() const

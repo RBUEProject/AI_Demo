@@ -18,10 +18,13 @@ UPlayerIsInMeleeRange::UPlayerIsInMeleeRange()
 void UPlayerIsInMeleeRange::OnBecomeRelevant(UBehaviorTreeComponent& owner_comp, uint8* node_memory)
 {
 	Super::OnBecomeRelevant(owner_comp,node_memory);
-	ANPC_AIController*const cont = Cast<ANPC_AIController>(owner_comp.GetAIOwner());
-	ANPC*const npc = Cast<ANPC>(cont->GetPawn());
-
-	ACharacter* const player = UGameplayStatics::GetPlayerCharacter(GetWorld(),0);
-	cont->get_blackboard()->SetValueAsBool(GetSelectedBlackboardKey(),
-		npc->GetDistanceTo(player)<=melee_range);
+	if (ANPC_AIController*const cont = Cast<ANPC_AIController>(owner_comp.GetAIOwner()))
+	{
+		if (ANPC*const npc = Cast<ANPC>(cont->GetPawn()))
+		{
+			ACharacter* const player = UGameplayStatics::GetPlayerCharacter(GetWorld(),0);
+				owner_comp.GetBlackboardComponent()->SetValueAsBool(GetSelectedBlackboardKey(),
+				npc->GetDistanceTo(player)<=melee_range);
+		}
+	}
 }

@@ -3,10 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
 #include "PatrolPath.h"
 #include "Animation/AnimMontage.h"
 #include "Cpp_AI_CharacterBase.h"
+#include "BehaviorTree/BehaviorTree.h"
 #include "NPC.generated.h"
 
 UCLASS()
@@ -33,7 +33,8 @@ public:
 	float get_health()const;
 	float get_max_health()const;
 	void set_health(float const new_health);
-
+	UBehaviorTree*GetBehaviorTree()const;
+	void SetPatrolPath(APatrolPath*const Path);
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -55,4 +56,7 @@ private:
 	UFUNCTION()
 		void on_attack_overlap_end(UPrimitiveComponent*const overlapped_component, AActor*const other_actor,
 			UPrimitiveComponent*other_component, int const other_body_index);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI", meta = (AllowPrivateAccess = "true"))
+	UBehaviorTree*BehaviorTree;
 };

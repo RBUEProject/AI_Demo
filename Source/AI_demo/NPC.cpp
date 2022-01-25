@@ -83,6 +83,16 @@ void ANPC::set_health(float const new_health)
 	}
 }
 
+UBehaviorTree* ANPC::GetBehaviorTree() const
+{
+	return BehaviorTree;
+}
+
+void ANPC::SetPatrolPath(APatrolPath*const Path)
+{
+	patrol_path = Path;
+}
+
 // Called to bind functionality to input
 void ANPC::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -101,6 +111,7 @@ void ANPC::melee_attack()
 	if (montage)
 	{
 		PlayAnimMontage(montage);
+		//UE_LOG(LogTemp,Warning,TEXT(__FUNCTION__" Succeed"));
 	}
 }
 

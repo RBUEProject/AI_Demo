@@ -15,16 +15,23 @@ UFindRandomLocation::UFindRandomLocation(FObjectInitializer const& object_initia
 
 EBTNodeResult::Type UFindRandomLocation::ExecuteTask(UBehaviorTreeComponent& owner_comp, uint8* node_memory)
 {
-	auto const cont = Cast<ANPC_AIController>(owner_comp.GetAIOwner());
-	auto const npc = cont->GetPawn();
-
-	FVector const origin = npc->GetActorLocation();
-	FNavLocation loc;
-	UNavigationSystemV1*const nav_sys = UNavigationSystemV1::GetCurrent(GetWorld());
-	if (nav_sys->GetRandomPointInNavigableRadius(origin, search_radius, loc, nullptr))
+	if (auto const cont = Cast<ANPC_AIController>(owner_comp.GetAIOwner()))
 	{
-		cont->get_blackboard()->SetValueAsVector(GetSelectedBlackboardKey(),loc.Location);
+		if (auto const npc = cont->GetPawn())
+		{
+			FVector const origin = npc->GetActorLocation();
+
+			if (UNavigationSystemV1*const nav_sys = UNavigationSystemV1::GetCurrent(GetWorld()))
+			{
+				FNavLocation loc;
+				if (nav_sys->GetRandomPointInNavigableRadius(origin, search_radius, loc, nullptr))
+				{
+					owner_comp.GetBlackboardComponent()->SetValueAsVector(GetSelectedBlackboardKey(),loc.Location);
+				}
+			}
+			FinishLatentTask(owner_comp,EBTNodeResult::Succeeded);
+			return EBTNodeResult::Succeeded;
+		}
 	}
-	FinishLatentTask(owner_comp,EBTNodeResult::Succeeded);
-	return EBTNodeResult::Succeeded;
+	return EBTNodeResult::Failed;
 }

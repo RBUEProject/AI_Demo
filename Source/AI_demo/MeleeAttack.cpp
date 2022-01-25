@@ -15,17 +15,19 @@ UMeleeAttack::UMeleeAttack(FObjectInitializer const& object_initializer)
 
 EBTNodeResult::Type UMeleeAttack::ExecuteTask(UBehaviorTreeComponent& owner_comp, uint8*node_memory)
 {
-	AAIController*const cont = Cast<AAIController>(owner_comp.GetAIOwner());
-
-	if (ANPC*const npc = Cast<ANPC>(cont->GetPawn()))
+	if (AAIController*const cont = Cast<AAIController>(owner_comp.GetAIOwner()))
 	{
-		if (montage_has_finished(npc))
+		if (ANPC*const npc = Cast<ANPC>(cont->GetPawn()))
 		{
-			npc->melee_attack();
+			if (montage_has_finished(npc))
+			{
+				npc->melee_attack();
+			}
 		}
+		FinishLatentTask(owner_comp,EBTNodeResult::Succeeded);
+		return EBTNodeResult::Succeeded;
 	}
-	FinishLatentTask(owner_comp,EBTNodeResult::Succeeded);
-	return EBTNodeResult::Succeeded;
+	return EBTNodeResult::Failed;
 }
 
 bool UMeleeAttack::montage_has_finished(ANPC* const npc)

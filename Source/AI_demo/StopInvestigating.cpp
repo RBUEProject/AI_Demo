@@ -13,8 +13,7 @@ UStopInvestigating::UStopInvestigating(FObjectInitializer const& object_initiali
 
 EBTNodeResult::Type UStopInvestigating::ExecuteTask(UBehaviorTreeComponent& owner_comp, uint8*node_memory)
 {
-	ANPC_AIController*const cont = Cast<ANPC_AIController>(owner_comp.GetAIOwner());
-	cont->get_blackboard()->SetValueAsBool(GetSelectedBlackboardKey(),false);
+	owner_comp.GetBlackboardComponent()->SetValueAsBool(GetSelectedBlackboardKey(),false);
 	FinishLatentTask(owner_comp, EBTNodeResult::Succeeded);
 	return EBTNodeResult::Succeeded;
 }
